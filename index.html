@@ -84,6 +84,16 @@ main{padding-top:16px}
 .two .bl{background:var(--maple);color:#1d1d1f}.two .bd{background:var(--slate);color:#f6f2ea}
 .go:active,.keys button:active,.two button:active,.opts button:active,.stat button:active{transform:translateY(2px);box-shadow:none}
 .l{color:var(--slate)}.d{color:var(--maple)}
+
+#gear{margin-left:auto;border:0;background:none;color:#fff8ee;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;cursor:pointer}
+#gear:active{background:rgba(0,0,0,.12)}
+#panel{position:fixed;inset:0;z-index:10;background:rgba(29,29,31,.35);display:grid;align-items:end;justify-items:center;padding:12px}
+#panel .sheet{width:100%;max-width:420px;background:var(--bg);border-radius:18px;padding:18px 16px 16px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+#panel h2{font:700 22px Georgia,serif;margin:0 0 12px}
+#panel .opts{display:grid;gap:8px;margin:0 0 14px}
+#panel .opts button{width:100%;text-align:left;padding:12px 14px;font-size:16px}
+#panel .go{width:100%}
+@media (prefers-reduced-motion:no-preference){#panel .sheet{animation:up .22s ease-out}}@keyframes up{from{transform:translateY(30px);opacity:0}}
 .ver{margin:18px 2px 0;font-size:13px;color:var(--mut);opacity:.7}
 /* étude : colonne et rangée de la bonne case */
 .sq.st{box-shadow:inset 0 0 0 100px rgba(242,182,50,.28)}
@@ -93,7 +103,7 @@ main{padding-top:16px}
 </style>
 </head>
 <body>
-<header class="top"><div><img src="icon-512.png" alt=""><h1>Drill des cases</h1></div></header>
+<header class="top"><div><img src="icon-512.png" alt=""><h1>Drill des cases</h1><button id="gear" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.4 2.6a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1L11 21h4l.4-2.6a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button></div></header>
 <main>
 <div class="seg" id="modes">
   <button data-m="find" aria-pressed="true">Trouver</button>
@@ -113,24 +123,24 @@ main{padding-top:16px}
   <div class="keys" id="kr"></div>
 </div>
 <div class="two" id="kColor" hidden><button class="bl" data-c="l">Claire</button><button class="bd" data-c="d">Foncée</button></div>
-<div class="opts">
+<div id="panel" hidden><div class="sheet" role="dialog" aria-label="Réglages"><h2>Réglages</h2><div class="opts">
   <button id="oSide">Vu des blancs</button>
   <button id="oCoord">Coordonnées : non</button>
   <button id="oDur">Durée : 30 s</button>
   <button id="oSnd">Son : oui</button>
   <button id="oFlash" hidden>Flash : non</button>
-  <button id="oAuto" hidden>Suite : auto</button>
-</div>
+  <button id="oAuto" hidden>Suite : rapide</button>
+</div><button class="go" id="close">Fermer</button></div></div>
 <p class="hint" id="hint"></p>
 <!-- Version : +0.1 à chaque mise à jour poussée sur GitHub -->
-<p class="ver">v1.8</p>
+<p class="ver">v1.9</p>
 <label class="ios" id="hap"><input type="checkbox" switch></label>
 </main>
 <script>
 {
 const F='abcdefgh',$=id=>document.getElementById(id),REST=5;
 const st=(()=>{try{return JSON.parse(localStorage.getItem('drill-cases'))||{}}catch(e){return{}}})();
-const S={mode:'find',side:st.side||'w',coord:!!st.coord,dur:st.dur??30,snd:st.snd??true,flash:!!st.flash,auto:st.auto??true,ft:null,best:st.best||{},
+const S={mode:'find',side:st.side||'w',coord:!!st.coord,dur:st.dur??30,snd:st.snd??true,flash:!!st.flash,auto:({true:'r',false:'t'})[st.auto]??st.auto??'r',ft:null,best:st.best||{},
   ph:'idle',black:false,legs:[],leg:0,ls:[],miss:0,streak:0,end:0,t:null,lock:false,pf:null,pr:null};
 if(S.side==='c'&&!S.dur)S.dur=30;
 const save=()=>{try{localStorage.setItem('drill-cases',JSON.stringify({side:S.side,coord:S.coord,dur:S.dur,snd:S.snd,flash:S.flash,auto:S.auto,best:S.best}))}catch(e){}};
@@ -164,7 +174,7 @@ function draw(){
 }
 const sq=n=>board.querySelector(`[data-s="${n}"]`);
 function study(n){board.querySelectorAll('.sq').forEach(q=>{const t=q.dataset.s;if(t!==n&&(t[0]===n[0]||t[1]===n[1]))q.classList.add('st')})}
-document.querySelector('main').addEventListener('click',e=>{if(!S.wait)return;if(e.target.closest('.opts,#modes,#stop'))return;e.stopPropagation();e.preventDefault();S.wait=false;next()},true);
+document.querySelector('main').addEventListener('click',e=>{if(!S.wait)return;if(e.target.closest('#panel,#modes,#stop'))return;e.stopPropagation();e.preventDefault();S.wait=false;next()},true);
 function dot(n,cls,txt,ms){
   const q=sq(n);if(!q)return;q.querySelector('.dot')?.remove();
   const d=document.createElement('span');d.className='dot '+cls;d.textContent=txt||'';q.appendChild(d);
@@ -193,7 +203,7 @@ function answer(ok,tapped,el){
     else{if(tapped&&tapped!==last)dot(tapped,'ko',tapped);dot(last,'ok',last)}}
   $('score').textContent=score();
   if(!S.dur&&S.mode!=='color'){study(last);
-    if(ok&&S.auto)setTimeout(next,1300);else{S.wait=true;$('prompt').innerHTML=`${last} <small>touche pour continuer</small>`}}
+    if(ok&&S.auto!=='t')setTimeout(next,S.auto==='l'?2200:650);else{S.wait=true;$('prompt').innerHTML=`${last} <small>touche pour continuer</small>`}}
   else setTimeout(next,ok?420:950);
 }
 board.addEventListener('click',e=>{const b=e.target.closest('.sq');if(b&&S.mode==='find')answer(b.dataset.s===last,b.dataset.s)});
@@ -255,13 +265,13 @@ function idle(){
   overlay('Prêt ?',hints[S.mode]+(S.dur&&b?` · record : ${b}`:''),'Démarrer');
   $('prompt').innerHTML='&nbsp;';$('time').textContent=S.dur?S.dur+',0':'∞';$('score').textContent=0;
   $('kName').hidden=S.mode!=='name';$('kColor').hidden=S.mode!=='color';
-  $('hint').textContent=(S.dur?'Juste +1, faux −1. Les notes montent quand tu enchaînes.':'Mode libre : la case reste affichée avec sa colonne et sa rangée. « Suite : auto » enchaîne après une bonne réponse et attend un toucher après une erreur ; « au toucher » attend toujours. « Stop » pour finir.')+(S.side==='c'?` Combo : ${S.dur} s blancs, ${REST} s de pause, ${S.dur} s noirs.`:'');
+  $('hint').textContent=(S.dur?'Juste +1, faux −1. Les notes montent quand tu enchaînes.':'Mode libre : la case reste affichée avec sa colonne et sa rangée. Réglage « Suite » : rapide, lente, ou au toucher. « Stop » pour finir.')+(S.side==='c'?` Combo : ${S.dur} s blancs, ${REST} s de pause, ${S.dur} s noirs.`:'');
   $('oSide').textContent={w:'Vu des blancs',b:'Vu des noirs',c:'Combo blancs → noirs'}[S.side];
   $('oCoord').textContent='Coordonnées : '+(S.coord?'oui':'non');
   $('oDur').textContent='Durée : '+(S.dur?S.dur+' s':'libre');
   $('oSnd').textContent='Son : '+(S.snd?'oui':'non');
   $('oFlash').textContent='Flash : '+(S.flash?'oui':'non');$('oFlash').hidden=S.mode!=='name';
-  $('oAuto').textContent='Suite : '+(S.auto?'auto':'au toucher');$('oAuto').hidden=!!S.dur||S.mode==='color';
+  $('oAuto').textContent='Suite : '+{r:'rapide',l:'lente',t:'au toucher'}[S.auto];$('oAuto').hidden=!!S.dur||S.mode==='color';
   draw();
 }
 $('go').addEventListener('click',start);
@@ -275,7 +285,10 @@ $('oCoord').addEventListener('click',()=>{S.coord=!S.coord;save();idle()});
 $('oDur').addEventListener('click',()=>{S.dur={30:60,60:0,0:30}[S.dur];if(!S.dur&&S.side==='c')S.dur=30;save();idle()});
 $('oSnd').addEventListener('click',()=>{S.snd=!S.snd;save();idle()});
 $('oFlash').addEventListener('click',()=>{S.flash=!S.flash;save();idle()});
-$('oAuto').addEventListener('click',()=>{S.auto=!S.auto;save();idle()});
+$('oAuto').addEventListener('click',()=>{S.auto={r:'l',l:'t',t:'r'}[S.auto];save();idle()});
+$('gear').addEventListener('click',()=>{$('panel').hidden=false});
+$('close').addEventListener('click',()=>{$('panel').hidden=true});
+$('panel').addEventListener('click',e=>{if(e.target.id==='panel')$('panel').hidden=true});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.ph==='run')finish()});
 idle();
 }
