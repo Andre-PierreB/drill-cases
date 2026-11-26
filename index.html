@@ -84,6 +84,7 @@ main{padding-top:16px}
 .two .bl{background:var(--maple);color:#1d1d1f}.two .bd{background:var(--slate);color:#f6f2ea}
 .go:active,.keys button:active,.two button:active,.opts button:active,.stat button:active{transform:translateY(2px);box-shadow:none}
 .l{color:var(--slate)}.d{color:var(--maple)}
+.ver{margin:18px 2px 0;font-size:13px;color:var(--mut);opacity:.7}
 /* étude : colonne et rangée de la bonne case */
 .sq.st{box-shadow:inset 0 0 0 100px rgba(242,182,50,.28)}
 #kName{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}#kName .keys{grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,auto);grid-auto-flow:column;margin-top:0}
@@ -120,6 +121,8 @@ main{padding-top:16px}
   <button id="oFlash" hidden>Flash : non</button>
 </div>
 <p class="hint" id="hint"></p>
+<!-- Version : +0.1 à chaque mise à jour poussée sur GitHub -->
+<p class="ver">v1.6</p>
 <label class="ios" id="hap"><input type="checkbox" switch></label>
 </main>
 <script>
