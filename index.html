@@ -85,11 +85,12 @@ main{padding-top:16px}
 .go:active,.keys button:active,.two button:active,.opts button:active,.stat button:active{transform:translateY(2px);box-shadow:none}
 .l{color:var(--slate)}.d{color:var(--maple)}
 
-#snd{margin-left:auto}#gear,#snd{border:0;background:none;color:#fff8ee;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;cursor:pointer}
-#gear:active,#snd:active{background:rgba(0,0,0,.12)}
+#gear{margin-left:auto;border:0;background:none;color:#fff8ee;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;cursor:pointer}
+#gear:active{background:rgba(0,0,0,.12)}
 #panel{position:fixed;inset:0;z-index:10;background:rgba(29,29,31,.35);display:grid;align-items:end;justify-items:center;padding:12px}
 #panel .sheet{width:100%;max-width:420px;background:var(--bg);border-radius:18px;padding:18px 16px 16px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
-#panel h2{font:700 22px Georgia,serif;margin:0 0 12px}
+#panel .sh{display:flex;align-items:center;justify-content:space-between;margin:0 0 10px}#panel h2{font:700 22px Georgia,serif;margin:0}
+#snd{border:1.5px solid var(--line);background:var(--card);color:var(--ink);width:44px;height:44px;border-radius:12px;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 0 var(--sh)}#snd:active{transform:translateY(2px);box-shadow:none}
 #panel .opts{display:grid;gap:8px;margin:0 0 14px}
 #panel .opts button{width:100%;text-align:left;padding:12px 14px;font-size:16px}
 #panel .go{width:100%}
@@ -104,7 +105,7 @@ main{padding-top:16px}
 </style>
 </head>
 <body>
-<header class="top"><div><img src="icon-512.png" alt=""><h1>Drill des cases</h1><button id="snd" aria-label="Son"></button><button id="gear" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.4 2.6a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1L11 21h4l.4-2.6a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button></div></header>
+<header class="top"><div><img src="icon-512.png" alt=""><h1>Drill des cases</h1><button id="gear" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.4 2.6a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1L11 21h4l.4-2.6a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button></div></header>
 <main>
 <div class="seg" id="modes">
   <button data-m="find" aria-pressed="true">Trouver</button>
@@ -124,7 +125,7 @@ main{padding-top:16px}
   <div class="keys" id="kr"></div>
 </div>
 <div class="two" id="kColor" hidden><button class="bl" data-c="l">Claire</button><button class="bd" data-c="d">Foncée</button></div>
-<div id="panel" hidden><div class="sheet" role="dialog" aria-label="Réglages"><h2>Réglages</h2><div class="opts">
+<div id="panel" hidden><div class="sheet" role="dialog" aria-label="Réglages"><div class="sh"><h2>Réglages</h2><button id="snd" aria-label="Son"></button></div><div class="opts">
   <button id="oSide">Vu des blancs</button>
   <button id="oDur">Durée : 30 s</button>
   <button id="oFlash">Flash : non</button>
@@ -132,7 +133,7 @@ main{padding-top:16px}
 </div><button class="go" id="close">Fermer</button></div></div>
 <p class="hint" id="hint"></p>
 <!-- Version : +0.1 à chaque mise à jour poussée sur GitHub -->
-<p class="ver">v1.12</p>
+<p class="ver">v1.13</p>
 <label class="ios" id="hap"><input type="checkbox" switch></label>
 </main>
 <script>
