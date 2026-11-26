@@ -93,6 +93,7 @@ main{padding-top:16px}
 #panel .opts{display:grid;gap:8px;margin:0 0 14px}
 #panel .opts button{width:100%;text-align:left;padding:12px 14px;font-size:16px}
 #panel .go{width:100%}
+#panel .opts button:disabled{opacity:.5;box-shadow:none;cursor:default}#panel .opts small{color:var(--mut);font-size:14px}
 @media (prefers-reduced-motion:no-preference){#panel .sheet{animation:up .22s ease-out}}@keyframes up{from{transform:translateY(30px);opacity:0}}
 .ver{margin:18px 2px 0;font-size:13px;color:var(--mut);opacity:.7}
 /* étude : colonne et rangée de la bonne case */
@@ -128,12 +129,12 @@ main{padding-top:16px}
   <button id="oCoord">Coordonnées : non</button>
   <button id="oDur">Durée : 30 s</button>
   <button id="oSnd">Son : oui</button>
-  <button id="oFlash" hidden>Flash : non</button>
-  <button id="oAuto" hidden>Suite : rapide</button>
+  <button id="oFlash">Flash : non</button>
+  <button id="oAuto">Suite : rapide</button>
 </div><button class="go" id="close">Fermer</button></div></div>
 <p class="hint" id="hint"></p>
 <!-- Version : +0.1 à chaque mise à jour poussée sur GitHub -->
-<p class="ver">v1.9</p>
+<p class="ver">v1.10</p>
 <label class="ios" id="hap"><input type="checkbox" switch></label>
 </main>
 <script>
@@ -270,8 +271,10 @@ function idle(){
   $('oCoord').textContent='Coordonnées : '+(S.coord?'oui':'non');
   $('oDur').textContent='Durée : '+(S.dur?S.dur+' s':'libre');
   $('oSnd').textContent='Son : '+(S.snd?'oui':'non');
-  $('oFlash').textContent='Flash : '+(S.flash?'oui':'non');$('oFlash').hidden=S.mode!=='name';
-  $('oAuto').textContent='Suite : '+{r:'rapide',l:'lente',t:'au toucher'}[S.auto];$('oAuto').hidden=!!S.dur||S.mode==='color';
+  const fOk=S.mode==='name';$('oFlash').disabled=!fOk;
+  $('oFlash').innerHTML='Flash : '+(fOk?(S.flash?'oui':'non'):'<small>seulement en Nommer</small>');
+  const aOk=!S.dur&&S.mode!=='color';$('oAuto').disabled=!aOk;
+  $('oAuto').innerHTML='Suite : '+(aOk?{r:'rapide',l:'lente',t:'au toucher'}[S.auto]:'<small>'+(S.dur?'seulement en durée libre':'pas en Couleur')+'</small>');
   draw();
 }
 $('go').addEventListener('click',start);
