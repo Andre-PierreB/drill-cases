@@ -119,20 +119,21 @@ main{padding-top:16px}
   <button id="oDur">Durée : 30 s</button>
   <button id="oSnd">Son : oui</button>
   <button id="oFlash" hidden>Flash : non</button>
+  <button id="oAuto" hidden>Suite : auto</button>
 </div>
 <p class="hint" id="hint"></p>
 <!-- Version : +0.1 à chaque mise à jour poussée sur GitHub -->
-<p class="ver">v1.7</p>
+<p class="ver">v1.8</p>
 <label class="ios" id="hap"><input type="checkbox" switch></label>
 </main>
 <script>
 {
 const F='abcdefgh',$=id=>document.getElementById(id),REST=5;
 const st=(()=>{try{return JSON.parse(localStorage.getItem('drill-cases'))||{}}catch(e){return{}}})();
-const S={mode:'find',side:st.side||'w',coord:!!st.coord,dur:st.dur??30,snd:st.snd??true,flash:!!st.flash,ft:null,best:st.best||{},
+const S={mode:'find',side:st.side||'w',coord:!!st.coord,dur:st.dur??30,snd:st.snd??true,flash:!!st.flash,auto:st.auto??true,ft:null,best:st.best||{},
   ph:'idle',black:false,legs:[],leg:0,ls:[],miss:0,streak:0,end:0,t:null,lock:false,pf:null,pr:null};
 if(S.side==='c'&&!S.dur)S.dur=30;
-const save=()=>{try{localStorage.setItem('drill-cases',JSON.stringify({side:S.side,coord:S.coord,dur:S.dur,snd:S.snd,flash:S.flash,best:S.best}))}catch(e){}};
+const save=()=>{try{localStorage.setItem('drill-cases',JSON.stringify({side:S.side,coord:S.coord,dur:S.dur,snd:S.snd,flash:S.flash,auto:S.auto,best:S.best}))}catch(e){}};
 const dark=(f,r)=>(f+r)%2===1,name=(f,r)=>F[f]+r,score=()=>S.ls.reduce((a,b)=>a+b,0);
 const key=()=>S.mode+S.dur+S.side;
 const hints={find:'Un nom de case s’affiche : touche-la.',name:'Une case s’allume : donne sa colonne puis sa rangée. Option flash : elle ne s’affiche qu’un instant.',color:'Sans échiquier : la case est-elle claire ou foncée ? (a1 est foncée)'};
@@ -192,7 +193,7 @@ function answer(ok,tapped,el){
     else{if(tapped&&tapped!==last)dot(tapped,'ko',tapped);dot(last,'ok',last)}}
   $('score').textContent=score();
   if(!S.dur&&S.mode!=='color'){study(last);
-    S.wait=true;$('prompt').innerHTML=`${last} <small>touche pour continuer</small>`}
+    if(ok&&S.auto)setTimeout(next,1300);else{S.wait=true;$('prompt').innerHTML=`${last} <small>touche pour continuer</small>`}}
   else setTimeout(next,ok?420:950);
 }
 board.addEventListener('click',e=>{const b=e.target.closest('.sq');if(b&&S.mode==='find')answer(b.dataset.s===last,b.dataset.s)});
@@ -254,12 +255,13 @@ function idle(){
   overlay('Prêt ?',hints[S.mode]+(S.dur&&b?` · record : ${b}`:''),'Démarrer');
   $('prompt').innerHTML='&nbsp;';$('time').textContent=S.dur?S.dur+',0':'∞';$('score').textContent=0;
   $('kName').hidden=S.mode!=='name';$('kColor').hidden=S.mode!=='color';
-  $('hint').textContent=(S.dur?'Juste +1, faux −1. Les notes montent quand tu enchaînes.':'Mode libre : après chaque réponse, la case reste affichée avec sa colonne et sa rangée ; touche l’écran pour passer à la suivante. « Stop » pour finir.')+(S.side==='c'?` Combo : ${S.dur} s blancs, ${REST} s de pause, ${S.dur} s noirs.`:'');
+  $('hint').textContent=(S.dur?'Juste +1, faux −1. Les notes montent quand tu enchaînes.':'Mode libre : la case reste affichée avec sa colonne et sa rangée. « Suite : auto » enchaîne après une bonne réponse et attend un toucher après une erreur ; « au toucher » attend toujours. « Stop » pour finir.')+(S.side==='c'?` Combo : ${S.dur} s blancs, ${REST} s de pause, ${S.dur} s noirs.`:'');
   $('oSide').textContent={w:'Vu des blancs',b:'Vu des noirs',c:'Combo blancs → noirs'}[S.side];
   $('oCoord').textContent='Coordonnées : '+(S.coord?'oui':'non');
   $('oDur').textContent='Durée : '+(S.dur?S.dur+' s':'libre');
   $('oSnd').textContent='Son : '+(S.snd?'oui':'non');
   $('oFlash').textContent='Flash : '+(S.flash?'oui':'non');$('oFlash').hidden=S.mode!=='name';
+  $('oAuto').textContent='Suite : '+(S.auto?'auto':'au toucher');$('oAuto').hidden=!!S.dur||S.mode==='color';
   draw();
 }
 $('go').addEventListener('click',start);
@@ -273,6 +275,7 @@ $('oCoord').addEventListener('click',()=>{S.coord=!S.coord;save();idle()});
 $('oDur').addEventListener('click',()=>{S.dur={30:60,60:0,0:30}[S.dur];if(!S.dur&&S.side==='c')S.dur=30;save();idle()});
 $('oSnd').addEventListener('click',()=>{S.snd=!S.snd;save();idle()});
 $('oFlash').addEventListener('click',()=>{S.flash=!S.flash;save();idle()});
+$('oAuto').addEventListener('click',()=>{S.auto=!S.auto;save();idle()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.ph==='run')finish()});
 idle();
 }
