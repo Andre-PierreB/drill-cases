@@ -96,6 +96,11 @@ main{padding-top:16px}
 #panel .go{width:100%}
 #panel .opts button:disabled{opacity:.5;box-shadow:none;cursor:default}#panel .opts small{color:var(--mut);font-size:14px}
 @media (prefers-reduced-motion:no-preference){#panel .sheet{animation:up .22s ease-out}}@keyframes up{from{transform:translateY(30px);opacity:0}}
+/* nom de la case centré juste au-dessus de l'échiquier */
+.bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin:14px 2px 10px}
+#prompt{text-align:center;font-size:52px;line-height:1;min-height:74px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#prompt small{display:block;margin-top:4px;font-size:14px}
+.stat.sl{text-align:left}
 .ver{margin:18px 2px 0;font-size:13px;color:var(--mut);opacity:.7}
 /* étude : colonne et rangée de la bonne case */
 .sq.st{box-shadow:inset 0 0 0 100px rgba(242,182,50,.28)}
@@ -113,8 +118,9 @@ main{padding-top:16px}
   <button data-m="color" aria-pressed="false">Couleur</button>
 </div>
 <div class="bar">
+  <div class="stat sl"><b id="score">0</b> pts</div>
   <div id="prompt">&nbsp;</div>
-  <div class="stat"><b id="score">0</b> pts · <span id="time">30,0</span> s <button id="stop" hidden>Stop</button></div>
+  <div class="stat"><span id="time">30,0 s</span> <button id="stop" hidden>Stop</button></div>
 </div>
 <div class="wrap">
   <div id="board"></div>
@@ -133,7 +139,7 @@ main{padding-top:16px}
 </div><button class="go" id="close">Fermer</button></div></div>
 <p class="hint" id="hint"></p>
 <!-- Version : +0.1 à chaque mise à jour poussée sur GitHub -->
-<p class="ver">v1.13</p>
+<p class="ver">v1.14</p>
 <label class="ios" id="hap"><input type="checkbox" switch></label>
 </main>
 <script>
@@ -226,7 +232,7 @@ function tick(){
     if(left<=0)runLeg();return;
   }
   if(!S.dur){$('time').textContent='∞';return}
-  $('time').textContent=(left/1000).toFixed(1).replace('.',',');
+  $('time').textContent=(left/1000).toFixed(1).replace('.',',')+' s';
   if(sec<=3&&sec!==lastSec&&sec>0){sTick(true);lastSec=sec}
   if(left<=0)endLeg();
 }
@@ -264,7 +270,7 @@ function idle(){
   S.ph='idle';S.wait=false;clearInterval(S.t);$('stop').hidden=true;S.black=S.side==='b';
   const b=S.best[key()];
   overlay('Prêt ?',hints[S.mode]+(S.dur&&b?` · record : ${b}`:''),'Démarrer');
-  $('prompt').innerHTML='&nbsp;';$('time').textContent=S.dur?S.dur+',0':'∞';$('score').textContent=0;
+  $('prompt').innerHTML='&nbsp;';$('time').textContent=S.dur?S.dur+',0 s':'∞';$('score').textContent=0;
   $('kName').hidden=S.mode!=='name';$('kColor').hidden=S.mode!=='color';
   $('hint').textContent=(S.dur?'Juste +1, faux −1. Les notes montent quand tu enchaînes.':'Mode libre : la case reste affichée avec sa colonne et sa rangée. Réglage « Suite » : rapide, lente, ou au toucher. « Stop » pour finir.')+(S.side==='c'?` Combo : ${S.dur} s blancs, ${REST} s de pause, ${S.dur} s noirs.`:'');
   $('oSide').textContent={w:'Vu des blancs',b:'Vu des noirs',c:'Combo blancs → noirs'}[S.side];
