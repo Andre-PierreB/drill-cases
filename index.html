@@ -84,6 +84,8 @@ main{padding-top:16px}
 .two .bl{background:var(--maple);color:#1d1d1f}.two .bd{background:var(--slate);color:#f6f2ea}
 .go:active,.keys button:active,.two button:active,.opts button:active,.stat button:active{transform:translateY(2px);box-shadow:none}
 .l{color:var(--slate)}.d{color:var(--maple)}
+#kName{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}#kName .keys{grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,auto);grid-auto-flow:column;margin-top:0}
+.wrap{background:var(--slate)}.wrap.veil #board{visibility:hidden!important}#kName .keys button{min-height:50px;font-size:20px}
 
 </style>
 </head>
@@ -113,6 +115,7 @@ main{padding-top:16px}
   <button id="oCoord">Coordonnées : non</button>
   <button id="oDur">Durée : 30 s</button>
   <button id="oSnd">Son : oui</button>
+  <button id="oFlash" hidden>Flash : non</button>
 </div>
 <p class="hint" id="hint"></p>
 <label class="ios" id="hap"><input type="checkbox" switch></label>
@@ -121,13 +124,13 @@ main{padding-top:16px}
 {
 const F='abcdefgh',$=id=>document.getElementById(id),REST=5;
 const st=(()=>{try{return JSON.parse(localStorage.getItem('drill-cases'))||{}}catch(e){return{}}})();
-const S={mode:'find',side:st.side||'w',coord:!!st.coord,dur:st.dur??30,snd:st.snd??true,best:st.best||{},
+const S={mode:'find',side:st.side||'w',coord:!!st.coord,dur:st.dur??30,snd:st.snd??true,flash:!!st.flash,ft:null,best:st.best||{},
   ph:'idle',black:false,legs:[],leg:0,ls:[],miss:0,streak:0,end:0,t:null,lock:false,pf:null,pr:null};
 if(S.side==='c'&&!S.dur)S.dur=30;
-const save=()=>{try{localStorage.setItem('drill-cases',JSON.stringify({side:S.side,coord:S.coord,dur:S.dur,snd:S.snd,best:S.best}))}catch(e){}};
+const save=()=>{try{localStorage.setItem('drill-cases',JSON.stringify({side:S.side,coord:S.coord,dur:S.dur,snd:S.snd,flash:S.flash,best:S.best}))}catch(e){}};
 const dark=(f,r)=>(f+r)%2===1,name=(f,r)=>F[f]+r,score=()=>S.ls.reduce((a,b)=>a+b,0);
 const key=()=>S.mode+S.dur+S.side;
-const hints={find:'Un nom de case s’affiche : touche-la.',name:'Une case s’allume : donne sa colonne puis sa rangée.',color:'Sans échiquier : la case est-elle claire ou foncée ? (a1 est foncée)'};
+const hints={find:'Un nom de case s’affiche : touche-la.',name:'Une case s’allume : donne sa colonne puis sa rangée. Option flash : elle ne s’affiche qu’un instant.',color:'Sans échiquier : la case est-elle claire ou foncée ? (a1 est foncée)'};
 /* son + vibration */
 let ac=null;
 function tone(freq,dur,type='sine',vol=.18,at=0){
@@ -165,12 +168,14 @@ function next(){
   do{target={f:Math.floor(Math.random()*8),r:1+Math.floor(Math.random()*8)}}while(name(target.f,target.r)===last);
   last=name(target.f,target.r);
   board.querySelectorAll('.dot').forEach(e=>e.remove());
-  if(S.mode==='name'){dot(last,'hi');$('prompt').innerHTML='<small>Quelle case ?</small>'}
+  clearTimeout(S.ft);board.parentNode.classList.remove('veil');
+  if(S.mode==='name'){dot(last,'hi');$('prompt').innerHTML='<small>Quelle case ?</small>';
+    if(S.flash)S.ft=setTimeout(()=>board.parentNode.classList.add('veil'),Math.max(300,900-S.streak*60))}
   else $('prompt').textContent=last;
   S.pf=S.pr=null;keySel();S.lock=false;
 }
 function answer(ok,tapped,el){
-  if(S.ph!=='run'||S.lock)return;S.lock=true;
+  if(S.ph!=='run'||S.lock)return;S.lock=true;clearTimeout(S.ft);board.parentNode.classList.remove('veil');
   const shade=dark(target.f,target.r)?'foncée':'claire';
   if(ok){S.streak++;S.ls[S.leg]++;sOk();buzz(12);
     if(S.mode==='color'){el.animate?.([{transform:'scale(.94)'},{transform:'none'}],180);$('prompt').innerHTML=`${last} <small>${shade}</small>`}
@@ -219,7 +224,7 @@ function runLeg(){
   S.end=Date.now()+S.dur*1000;$('stop').hidden=!!S.dur;draw();last=null;next();tick();
 }
 function endLeg(){
-  S.lock=true;board.querySelectorAll('.dot').forEach(e=>e.remove());
+  S.lock=true;clearTimeout(S.ft);board.parentNode.classList.remove('veil');board.querySelectorAll('.dot').forEach(e=>e.remove());
   if(S.leg<S.legs.length-1){
     S.leg++;S.ph='rest';S.black=S.legs[S.leg];draw();S.end=Date.now()+REST*1000;lastSec=null;
     $('prompt').innerHTML='&nbsp;';sEnd();
@@ -227,7 +232,7 @@ function endLeg(){
   }else finish();
 }
 function finish(){
-  S.ph='done';clearInterval(S.t);$('stop').hidden=true;sEnd();
+  S.ph='done';clearInterval(S.t);clearTimeout(S.ft);board.parentNode.classList.remove('veil');$('stop').hidden=true;sEnd();
   const tot=score(),k=key(),rec=S.dur&&tot>(S.best[k]||0);
   if(rec){S.best[k]=tot;save()}
   const parts=S.legs.length>1?`Blancs ${S.ls[0]} · Noirs ${S.ls[1]} · `:'';
@@ -245,6 +250,7 @@ function idle(){
   $('oCoord').textContent='Coordonnées : '+(S.coord?'oui':'non');
   $('oDur').textContent='Durée : '+(S.dur?S.dur+' s':'libre');
   $('oSnd').textContent='Son : '+(S.snd?'oui':'non');
+  $('oFlash').textContent='Flash : '+(S.flash?'oui':'non');$('oFlash').hidden=S.mode!=='name';
   draw();
 }
 $('go').addEventListener('click',start);
@@ -257,6 +263,7 @@ $('oSide').addEventListener('click',()=>{S.side={w:'b',b:'c',c:'w'}[S.side];if(S
 $('oCoord').addEventListener('click',()=>{S.coord=!S.coord;save();idle()});
 $('oDur').addEventListener('click',()=>{S.dur={30:60,60:0,0:30}[S.dur];if(!S.dur&&S.side==='c')S.dur=30;save();idle()});
 $('oSnd').addEventListener('click',()=>{S.snd=!S.snd;save();idle()});
+$('oFlash').addEventListener('click',()=>{S.flash=!S.flash;save();idle()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.ph==='run')finish()});
 idle();
 }
