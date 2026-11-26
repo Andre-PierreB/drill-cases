@@ -101,11 +101,14 @@ main{padding-top:16px}
 #prompt{text-align:center;font-size:52px;line-height:1;min-height:74px;display:flex;flex-direction:column;align-items:center;justify-content:center}
 #prompt small{display:block;margin-top:4px;font-size:14px}
 .stat.sl{text-align:left}
-.rt{width:100%;border-collapse:collapse;margin:0 0 14px;font-variant-numeric:tabular-nums}
-.rt th,.rt td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:right;font-size:15px}
-.rt th{font-weight:600;color:var(--mut);font-size:13px}.rt th:first-child,.rt td:first-child{text-align:left}
-.rt tr.m td{font:700 16px Georgia,serif;border-bottom:0;padding-top:12px;text-align:left}
-.rt td.rec{font-weight:700;color:var(--ink)}.rt td.none{color:var(--mut)}
+.pan .sheet>h2{margin-bottom:10px}
+.rc{border-radius:14px;overflow:hidden;margin:0 0 10px;background:var(--card);box-shadow:0 2px 0 var(--sh)}
+.rc h3{margin:0;padding:7px 12px;font:700 16px Georgia,serif;color:#1d1d1f}
+.rg{display:grid;grid-template-columns:64px repeat(3,1fr);gap:4px;padding:8px 10px 10px;align-items:center;font-variant-numeric:tabular-nums}
+.rg .hd{display:grid;place-items:center;height:30px}
+.rg .lb{font-size:13px;color:var(--mut);display:flex;align-items:center;gap:3px;white-space:nowrap}
+.rg .v{height:34px;border-radius:9px;display:grid;place-items:center;font:700 18px Georgia,serif}
+.rg .v.no{color:var(--mut);font:400 15px Inter,sans-serif;opacity:.6}
 .ver{margin:18px 2px 0;font-size:13px;color:var(--mut);opacity:.7}
 /* étude : colonne et rangée de la bonne case */
 .sq.st{box-shadow:inset 0 0 0 100px rgba(242,182,50,.28)}
@@ -145,7 +148,7 @@ main{padding-top:16px}
 </div><button class="go" id="close">Fermer</button></div></div>
 <p class="hint" id="hint"></p>
 <!-- Version : +0.1 à chaque mise à jour poussée sur GitHub -->
-<p class="ver">v1.15</p>
+<p class="ver">v1.16</p>
 <label class="ios" id="hap"><input type="checkbox" switch></label>
 </main>
 <script>
@@ -158,7 +161,7 @@ const S={mode:'find',side:st.side||'w',coord:false,dur:st.dur??30,snd:st.snd??tr
 if(S.side==='c'&&!S.dur)S.dur=30;
 const save=()=>{try{localStorage.setItem('drill-cases',JSON.stringify({side:S.side,coord:S.coord,dur:S.dur,snd:S.snd,flash:S.flash,auto:S.auto,best:S.best}))}catch(e){}};
 const dark=(f,r)=>(f+r)%2===1,name=(f,r)=>F[f]+r,score=()=>S.ls.reduce((a,b)=>a+b,0);
-const key=()=>S.mode+S.dur+S.side;
+const key=()=>S.mode+S.dur+S.side+(S.mode==='name'&&S.flash?'f':'');
 const hints={find:'Un nom de case s’affiche : touche-la.',name:'Une case s’allume : donne sa colonne puis sa rangée. Option flash : elle ne s’affiche qu’un instant.',color:'Sans échiquier : la case est-elle claire ou foncée ? (a1 est foncée)'};
 /* son + vibration */
 let ac=null;
@@ -302,11 +305,20 @@ $('snd').addEventListener('click',()=>{S.snd=!S.snd;save();$('snd').innerHTML=S.
 $('oFlash').addEventListener('click',()=>{S.flash=!S.flash;save();idle()});
 $('oAuto').addEventListener('click',()=>{S.auto={r:'l',l:'t',t:'r'}[S.auto];save();idle()});
 $('podium').addEventListener('click',()=>{
-  const M={find:'Trouver',name:'Nommer',color:'Couleur'},O={w:'Blancs',b:'Noirs',c:'Combo'};
-  let h='<table class="rt"><tr><th></th><th>30 s</th><th>60 s</th></tr>';
-  for(const m in M){h+=`<tr class="m"><td colspan="3">${M[m]}</td></tr>`;
-    for(const o in O){h+=`<tr><td>${O[o]}</td>`+[30,60].map(d=>{const v=S.best[m+d+o];return v?`<td class="rec">${v}</td>`:'<td class="none">—</td>'}).join('')+'</tr>'}}
-  $('rtab').innerHTML=h+'</table>';$('recs').hidden=false});
+  const pawn=(f,st)=>`<path d="M12 2.8a3.2 3.2 0 1 1 0 6.4 3.2 3.2 0 0 1 0-6.4zM9.2 10.4h5.6l-.9 5h2.3l1.6 5.4H6.2l1.6-5.4h2.3z" fill="${f}" stroke="${st}" stroke-width="1.4" stroke-linejoin="round"/>`;
+  const P={w:`<svg viewBox="0 0 24 24" width="26" height="26">${pawn('#fffdf8','#1d1d1f')}</svg>`,
+           b:`<svg viewBox="0 0 24 24" width="26" height="26">${pawn('#1d1d1f','#1d1d1f')}</svg>`,
+           c:`<svg viewBox="0 0 34 24" width="36" height="26"><g transform="translate(0 0)">${pawn('#fffdf8','#1d1d1f')}</g><g transform="translate(10 0)">${pawn('#1d1d1f','#1d1d1f')}</g></svg>`};
+  const bolt='<svg viewBox="0 0 24 24" width="13" height="13"><path d="M13 2 4 14h7l-1 8 9-12h-7z" fill="#f2b632" stroke="#1d1d1f" stroke-width="1.2" stroke-linejoin="round"/></svg>';
+  const M=[['find','Trouver','#f2b632','#fbe7b5'],['name','Nommer','#5fd0b4','#cdeee5'],['color','Couleur','#b39ae6','#e6dcf7']];
+  let h='';
+  for(const [m,n,c,t] of M){
+    const rows=[['30','30 s'],['60','60 s']];if(m==='name')rows.push(['30f','30 s '+bolt],['60f','60 s '+bolt]);
+    h+=`<div class="rc"><h3 style="background:${c}">${n}</h3><div class="rg"><span></span>`+['w','b','c'].map(o=>`<span class="hd">${P[o]}</span>`).join('');
+    for(const [d,l] of rows){h+=`<span class="lb">${l}</span>`+['w','b','c'].map(o=>{const k=m+d.replace('f','')+o+(d.endsWith('f')?'f':''),v=S.best[k];return v?`<span class="v" style="background:${t}">${v}</span>`:'<span class="v no">·</span>'}).join('')}
+    h+='</div></div>';
+  }
+  $('rtab').innerHTML=h;$('recs').hidden=false});
 $('rclose').addEventListener('click',()=>{$('recs').hidden=true});
 $('recs').addEventListener('click',e=>{if(e.target.id==='recs')$('recs').hidden=true});
 $('gear').addEventListener('click',()=>{$('panel').hidden=false});
