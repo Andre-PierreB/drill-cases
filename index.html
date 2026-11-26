@@ -62,28 +62,28 @@ h1{font:600 30px/1.05 Fraunces,Georgia,serif;margin:4px 0 12px}
 button:focus-visible{outline:3px solid #1f6fd1;outline-offset:2px}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:no-preference){.sq{transition:background .12s}}
-/* ——— Charte de la pie (icône) : corail, encre, bleu nuit, érable, or ——— */
-:root{--coral:#e0643f;--navy:#2a3345;--gold:#f2b632;--maple:#ecd6b0;--k:#141414;
---bg:light-dark(#f4f1e8,#1c2230);--ink:light-dark(#141414,#f4f1e8);--mut:light-dark(#5b5348,#b9b2a6);
---li:var(--maple);--dk:var(--navy);--card:light-dark(#fff,#2a3345);--line:var(--k);--ok:#2f9e6b;--ko:#d6453a}
-.top{background:var(--coral);border-bottom:3px solid var(--k)}
-.top div{max-width:520px;margin:0 auto;padding:12px 14px;display:flex;align-items:center;gap:12px}
-.top img{width:52px;height:52px;border-radius:12px;border:3px solid var(--k);box-shadow:3px 4px 0 var(--k);flex:none}
-h1{font:700 28px/1.05 Georgia,serif;margin:0;color:var(--k)}
+/* ——— Charte de la pie (icône), version douce ——— */
+:root{--coral:#e0643f;--navy:#2a3345;--gold:#f2b632;--maple:light-dark(#eadcc2,#b9ae98);--slate:light-dark(#56637b,#46536b);
+--bg:light-dark(#f6f2ea,#1d222c);--ink:light-dark(#1d1d1f,#ece6da);--mut:light-dark(#6b6358,#a39d92);
+--li:var(--maple);--dk:var(--slate);--card:light-dark(#fffdf8,#272d39);--line:light-dark(rgba(29,29,31,.55),rgba(236,230,218,.25));
+--sh:light-dark(rgba(29,29,31,.18),rgba(0,0,0,.35));--ok:#3a9e70;--ko:#d6534a}
+.top{background:var(--coral)}
+.top div{max-width:520px;margin:0 auto;padding:10px 14px;display:flex;align-items:center;gap:12px}
+.top img{width:44px;height:44px;border-radius:11px;box-shadow:0 2px 6px rgba(0,0,0,.25);flex:none}
+h1{font:700 26px/1.05 Georgia,serif;margin:0;color:#fff8ee}
 main{padding-top:16px}
-#prompt{font-family:Georgia,serif;font-weight:700}#over .big,#over .cnt{font-family:Georgia,serif;font-weight:700}
-.seg{border:3px solid var(--k);box-shadow:4px 5px 0 var(--k);border-radius:12px}
-.seg button[aria-pressed=true]{background:var(--navy);color:#f4f1e8}
-.wrap{border:4px solid var(--k);border-radius:10px;box-shadow:7px 9px 0 var(--k)}
-#over{background:rgba(42,51,69,.82)}
-.go{background:var(--gold);color:var(--k);border:3px solid var(--k);box-shadow:4px 5px 0 var(--k);font-family:Georgia,serif;font-weight:700}
-.keys button,.two button,.opts button,.stat button{border:3px solid var(--k);box-shadow:3px 4px 0 var(--k);border-radius:10px}
-.keys button{background:var(--maple);color:var(--k);font-family:Georgia,serif;font-weight:700}
-.keys button.sel{background:var(--navy);color:#f4f1e8}
-.two .bl{background:var(--maple);color:var(--k);border-color:var(--k)}.two .bd{background:var(--navy);color:#f4f1e8;border-color:var(--k)}
-.opts button{border-radius:10px;border-width:2px;box-shadow:2px 3px 0 var(--k)}
-.go:active,.keys button:active,.two button:active,.opts button:active,.stat button:active{transform:translate(2px,3px);box-shadow:1px 1px 0 var(--k)}
-.l{color:var(--navy)}.d{color:var(--maple)}
+#prompt,#over .big,#over .cnt{font-family:Georgia,serif;font-weight:700}
+.seg{border:1.5px solid var(--line);box-shadow:0 2px 0 var(--sh)}
+.seg button[aria-pressed=true]{background:var(--navy);color:#f6f2ea}
+.wrap{border:2px solid var(--line);border-radius:10px;box-shadow:0 4px 0 var(--sh),0 10px 24px var(--sh)}
+#over{background:rgba(42,51,69,.7)}
+.go{background:var(--gold);color:#1d1d1f;border:1.5px solid rgba(29,29,31,.5);box-shadow:0 3px 0 rgba(29,29,31,.25);font-family:Georgia,serif;font-weight:700}
+.keys button,.two button,.opts button,.stat button{border:1.5px solid var(--line);box-shadow:0 2px 0 var(--sh);border-radius:10px}
+.keys button{background:var(--maple);color:#1d1d1f;font-family:Georgia,serif;font-weight:700}
+.keys button.sel{background:var(--navy);color:#f6f2ea}
+.two .bl{background:var(--maple);color:#1d1d1f}.two .bd{background:var(--slate);color:#f6f2ea}
+.go:active,.keys button:active,.two button:active,.opts button:active,.stat button:active{transform:translateY(2px);box-shadow:none}
+.l{color:var(--slate)}.d{color:var(--maple)}
 
 </style>
 </head>
