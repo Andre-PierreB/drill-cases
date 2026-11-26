@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Drill des cases</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: sobre, ludique, rapide — un outil de drill, pas une page
+   IDEA: l'échiquier de club en bois, avec la pendule à côté
+   PICTURE: l'échiquier lui-même, plein écran en largeur
+   COLOUR and TYPE: noyer + érable, vert feutre en accent ; Fraunces titres, Inter
+   LAYOUT: titre court, barre score/chrono, échiquier, commandes dessous */
+:root{color-scheme:light dark;--bg:light-dark(#f4efe6,#1b1714);--ink:light-dark(#231b14,#efe6da);--mut:light-dark(#7a6a5a,#a8998a);
+--li:#ecd6b0;--dk:#a9744f;--ok:#2f8f5b;--ko:#d04437;--card:light-dark(#fff,#28221d);--line:light-dark(#e2d8c8,#3a322b)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;overflow-x:clip;-webkit-tap-highlight-color:transparent}
+main{max-width:520px;margin:0 auto;padding:14px 14px 32px}
+h1{font:600 30px/1.05 Fraunces,Georgia,serif;margin:4px 0 12px}
+.seg{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px}
+.seg button{flex:1;border:0;background:none;color:var(--ink);font:600 15px Inter,sans-serif;padding:10px 4px;border-radius:9px;min-height:44px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.bar{display:flex;align-items:baseline;justify-content:space-between;margin:14px 2px 8px}
+#prompt{font:600 44px/1 Fraunces,Georgia,serif;min-height:44px}
+#prompt small{font:400 15px Inter,sans-serif;color:var(--mut)}
+.stat{text-align:right;font-variant-numeric:tabular-nums;color:var(--mut);font-size:14px;white-space:nowrap}
+.stat button{margin-left:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 14px Inter,sans-serif;padding:8px 12px;border-radius:9px;min-height:40px;cursor:pointer}
+.stat b{color:var(--ink);font-size:22px}
+.wrap{position:relative;border-radius:8px;box-shadow:0 10px 28px rgba(40,20,0,.25);overflow:hidden}
+#board{display:grid;grid-template-columns:repeat(8,1fr);aspect-ratio:1}
+.sq{border:0;padding:0;position:relative;cursor:pointer;font:600 11px Inter,sans-serif}
+.l{background:var(--li);color:var(--dk)}.d{background:var(--dk);color:var(--li)}
+.sq .cf{position:absolute;right:3px;bottom:1px}.sq .cr{position:absolute;left:3px;top:1px}
+.dot{position:absolute;inset:9%;border-radius:50%;display:grid;place-items:center;font:700 clamp(13px,4.2vw,20px) Inter,sans-serif;color:#fff;pointer-events:none;z-index:2}
+.dot.hi{background:radial-gradient(circle at 40% 35%,#ffe9a8,#f4b740 55%,#f4b74000 72%);box-shadow:0 0 18px 6px #f4b74088}
+.dot.ok{background:radial-gradient(circle at 40% 35%,#7fe0a6,var(--ok) 60%);box-shadow:0 0 16px 4px #2f8f5b99}
+.dot.ko{background:radial-gradient(circle at 40% 35%,#ff9a8f,var(--ko) 60%);box-shadow:0 0 16px 4px #d0443799}
+@media (prefers-reduced-motion:no-preference){.dot{animation:pop .22s ease-out}.dot.hi{animation:pop .22s ease-out,pulse 1.4s ease-in-out .22s infinite}}
+@keyframes pop{from{transform:scale(.3);opacity:0}}
+@keyframes pulse{50%{transform:scale(.88)}}
+.ios{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;overflow:hidden}
+#over{position:absolute;inset:0;display:grid;place-items:center;background:rgba(27,23,20,.55);color:#fff;text-align:center;padding:20px}
+#over[hidden]{display:none}
+#over p{margin:0 0 14px;font-size:17px}#over .cnt{font:600 72px Fraunces,serif;margin:0}#over .big{font:600 40px Fraunces,serif;margin-bottom:4px}
+.go{border:0;background:var(--ok);color:#fff;font:600 18px Inter,sans-serif;padding:14px 34px;border-radius:12px;min-height:48px;cursor:pointer}
+.keys{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-top:10px}
+.keys button,.two button{border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 18px Inter,sans-serif;min-height:46px;border-radius:9px;cursor:pointer}
+.keys button.sel{background:var(--ink);color:var(--bg)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.two button{min-height:56px}.two .bl{background:var(--li);color:#5a3b22;border-color:transparent}.two .bd{background:var(--dk);color:#fff;border-color:transparent}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.opts button{border:1px solid var(--line);background:var(--card);color:var(--ink);font:15px Inter,sans-serif;padding:8px 12px;border-radius:999px;min-height:44px;cursor:pointer}
+.hint{color:var(--mut);font-size:14px;margin:14px 2px 0}
+button:focus-visible{outline:3px solid #1f6fd1;outline-offset:2px}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:no-preference){.sq{transition:background .12s}}
+</style>
+</head>
+<body>
+<main>
+<h1>Drill des cases</h1>
+<div class="seg" id="modes">
+  <button data-m="find" aria-pressed="true">Trouver</button>
+  <button data-m="name" aria-pressed="false">Nommer</button>
+  <button data-m="color" aria-pressed="false">Couleur</button>
+</div>
+<div class="bar">
+  <div id="prompt">&nbsp;</div>
+  <div class="stat"><b id="score">0</b> pts · <span id="time">30,0</span> s <button id="stop" hidden>Stop</button></div>
+</div>
+<div class="wrap">
+  <div id="board"></div>
+  <div id="over"><div><p class="big" id="ovT">Prêt ?</p><p class="cnt" id="cnt" hidden></p><p id="ovS">Touche la case demandée.</p><button class="go" id="go">Démarrer</button></div></div>
+</div>
+<div id="kName" hidden>
+  <div class="keys" id="kf"></div>
+  <div class="keys" id="kr"></div>
+</div>
+<div class="two" id="kColor" hidden><button class="bl" data-c="l">Claire</button><button class="bd" data-c="d">Foncée</button></div>
+<div class="opts">
+  <button id="oSide">Vu des blancs</button>
+  <button id="oCoord">Coordonnées : non</button>
+  <button id="oDur">Durée : 30 s</button>
+  <button id="oSnd">Son : oui</button>
+</div>
+<p class="hint" id="hint"></p>
+<label class="ios" id="hap"><input type="checkbox" switch></label>
+</main>
+<script>
+{
+const F='abcdefgh',$=id=>document.getElementById(id),REST=5;
+const st=(()=>{try{return JSON.parse(localStorage.getItem('drill-cases'))||{}}catch(e){return{}}})();
+const S={mode:'find',side:st.side||'w',coord:!!st.coord,dur:st.dur??30,snd:st.snd??true,best:st.best||{},
+  ph:'idle',black:false,legs:[],leg:0,ls:[],miss:0,streak:0,end:0,t:null,lock:false,pf:null,pr:null};
+if(S.side==='c'&&!S.dur)S.dur=30;
+const save=()=>{try{localStorage.setItem('drill-cases',JSON.stringify({side:S.side,coord:S.coord,dur:S.dur,snd:S.snd,best:S.best}))}catch(e){}};
+const dark=(f,r)=>(f+r)%2===1,name=(f,r)=>F[f]+r,score=()=>S.ls.reduce((a,b)=>a+b,0);
+const key=()=>S.mode+S.dur+S.side;
+const hints={find:'Un nom de case s’affiche : touche-la.',name:'Une case s’allume : donne sa colonne puis sa rangée.',color:'Sans échiquier : la case est-elle claire ou foncée ? (a1 est foncée)'};
+/* son + vibration */
+let ac=null;
+function tone(freq,dur,type='sine',vol=.18,at=0){
+  if(!S.snd||!ac)return;const t=ac.currentTime+at,o=ac.createOscillator(),g=ac.createGain();
+  o.type=type;o.frequency.setValueAtTime(freq,t);if(type==='sine')o.frequency.exponentialRampToValueAtTime(freq*1.5,t+dur*.6);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur+.02);
+}
+const SCALE=[523,587,659,784,880,1047,1175,1319,1568,1760];
+const sOk=()=>tone(SCALE[Math.min(S.streak-1,SCALE.length-1)],.12);
+const sKo=()=>{tone(180,.22,'triangle',.25);tone(140,.25,'triangle',.2,.06)};
+const sTick=hi=>tone(hi?990:660,.08,'sine',.12);
+const sEnd=()=>[523,659,784,1047].forEach((f,i)=>tone(f,.18,'sine',.16,i*.09));
+function buzz(ms){try{if(navigator.vibrate){navigator.vibrate(ms);return}}catch(e){}try{$('hap').click()}catch(e){}}
+/* échiquier */
+const board=$('board');
+function draw(){
+  let h='';
+  for(let row=0;row<8;row++)for(let col=0;col<8;col++){
+    const f=S.black?7-col:col,r=S.black?row+1:8-row;let lab='';
+    if(S.coord){if(row===7)lab+=`<span class="cf">${F[f]}</span>`;if(col===0)lab+=`<span class="cr">${r}</span>`}
+    h+=`<button class="sq ${dark(f,r)?'d':'l'}" data-s="${name(f,r)}" aria-label="${name(f,r)}">${lab}</button>`;
+  }
+  board.innerHTML=h;board.style.visibility=S.mode==='color'&&S.ph==='run'?'hidden':'visible';
+}
+const sq=n=>board.querySelector(`[data-s="${n}"]`);
+function dot(n,cls,txt,ms){
+  const q=sq(n);if(!q)return;q.querySelector('.dot')?.remove();
+  const d=document.createElement('span');d.className='dot '+cls;d.textContent=txt||'';q.appendChild(d);
+  if(ms)setTimeout(()=>d.remove(),ms);
+}
+let target=null,last=null;
+function next(){
+  if(S.ph!=='run')return;
+  do{target={f:Math.floor(Math.random()*8),r:1+Math.floor(Math.random()*8)}}while(name(target.f,target.r)===last);
+  last=name(target.f,target.r);
+  board.querySelectorAll('.dot').forEach(e=>e.remove());
+  if(S.mode==='name'){dot(last,'hi');$('prompt').innerHTML='<small>Quelle case ?</small>'}
+  else $('prompt').textContent=last;
+  S.pf=S.pr=null;keySel();S.lock=false;
+}
+function answer(ok,tapped,el){
+  if(S.ph!=='run'||S.lock)return;S.lock=true;
+  const shade=dark(target.f,target.r)?'foncée':'claire';
+  if(ok){S.streak++;S.ls[S.leg]++;sOk();buzz(12);
+    if(S.mode==='color'){el.animate?.([{transform:'scale(.94)'},{transform:'none'}],180);$('prompt').innerHTML=`${last} <small>${shade}</small>`}
+    else dot(last,'ok',last);}
+  else{S.streak=0;S.miss++;S.ls[S.leg]=Math.max(0,S.ls[S.leg]-1);sKo();buzz([30,40,30]);
+    if(S.mode==='color')$('prompt').innerHTML=`${last} <small>${shade} !</small>`;
+    else{if(tapped&&tapped!==last)dot(tapped,'ko',tapped);dot(last,'ok',last)}}
+  $('score').textContent=score();
+  setTimeout(next,ok?420:950);
+}
+board.addEventListener('click',e=>{const b=e.target.closest('.sq');if(b&&S.mode==='find')answer(b.dataset.s===last,b.dataset.s)});
+$('kf').innerHTML=[...F].map(c=>`<button data-f="${c}">${c}</button>`).join('');
+$('kr').innerHTML=[1,2,3,4,5,6,7,8].map(n=>`<button data-r="${n}">${n}</button>`).join('');
+function keySel(){document.querySelectorAll('#kName button').forEach(b=>b.classList.toggle('sel',b.dataset.f===S.pf||b.dataset.r===S.pr))}
+$('kName').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b||S.ph!=='run'||S.lock)return;
+  if(b.dataset.f)S.pf=b.dataset.f;else S.pr=b.dataset.r;keySel();tone(1400,.03,'sine',.06);
+  if(S.pf&&S.pr)answer(S.pf+S.pr===last,S.pf+S.pr);
+});
+$('kColor').addEventListener('click',e=>{const b=e.target.closest('button');if(b)answer((b.dataset.c==='d')===dark(target.f,target.r),null,b)});
+/* déroulé : manche(s) + repos */
+let lastSec=null;
+function tick(){
+  const left=Math.max(0,S.end-Date.now()),sec=Math.ceil(left/1000);
+  if(S.ph==='rest'){
+    $('cnt').textContent=sec;if(sec!==lastSec&&sec>0){sTick(false);lastSec=sec}
+    if(left<=0)runLeg();return;
+  }
+  if(!S.dur){$('time').textContent='∞';return}
+  $('time').textContent=(left/1000).toFixed(1).replace('.',',');
+  if(sec<=3&&sec!==lastSec&&sec>0){sTick(true);lastSec=sec}
+  if(left<=0)endLeg();
+}
+function overlay(title,sub,btn,cnt){
+  $('ovT').textContent=title;$('ovS').textContent=sub;
+  $('go').hidden=!btn;$('go').textContent=btn||'';$('cnt').hidden=cnt==null;$('cnt').textContent=cnt??'';$('over').hidden=false;
+}
+function start(){
+  if(!ac)try{ac=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}
+  ac?.resume?.();
+  S.legs=S.side==='c'?[false,true]:[S.side==='b'];S.leg=0;S.ls=S.legs.map(()=>0);S.miss=0;S.streak=0;
+  $('score').textContent=0;clearInterval(S.t);S.t=setInterval(tick,100);runLeg();
+}
+function runLeg(){
+  S.black=S.legs[S.leg];S.ph='run';lastSec=null;$('over').hidden=true;
+  S.end=Date.now()+S.dur*1000;$('stop').hidden=!!S.dur;draw();last=null;next();tick();
+}
+function endLeg(){
+  S.lock=true;board.querySelectorAll('.dot').forEach(e=>e.remove());
+  if(S.leg<S.legs.length-1){
+    S.leg++;S.ph='rest';S.black=S.legs[S.leg];draw();S.end=Date.now()+REST*1000;lastSec=null;
+    $('prompt').innerHTML='&nbsp;';sEnd();
+    overlay('Pause',`Blancs : ${S.ls[0]} pts · on retourne l’échiquier`,null,REST);
+  }else finish();
+}
+function finish(){
+  S.ph='done';clearInterval(S.t);$('stop').hidden=true;sEnd();
+  const tot=score(),k=key(),rec=S.dur&&tot>(S.best[k]||0);
+  if(rec){S.best[k]=tot;save()}
+  const parts=S.legs.length>1?`Blancs ${S.ls[0]} · Noirs ${S.ls[1]} · `:'';
+  overlay(tot+' pts',parts+`${S.miss} erreur${S.miss>1?'s':''}`+(S.dur?(rec&&tot?' · record !':` · record : ${S.best[k]||0}`):''),'Rejouer');
+  $('prompt').innerHTML='&nbsp;';draw();
+}
+function idle(){
+  S.ph='idle';clearInterval(S.t);$('stop').hidden=true;S.black=S.side==='b';
+  const b=S.best[key()];
+  overlay('Prêt ?',hints[S.mode]+(S.dur&&b?` · record : ${b}`:''),'Démarrer');
+  $('prompt').innerHTML='&nbsp;';$('time').textContent=S.dur?S.dur+',0':'∞';$('score').textContent=0;
+  $('kName').hidden=S.mode!=='name';$('kColor').hidden=S.mode!=='color';
+  $('hint').textContent=(S.dur?'Juste +1, faux −1. Les notes montent quand tu enchaînes.':'Mode libre : « Stop » pour finir.')+(S.side==='c'?` Combo : ${S.dur} s blancs, ${REST} s de pause, ${S.dur} s noirs.`:'');
+  $('oSide').textContent={w:'Vu des blancs',b:'Vu des noirs',c:'Combo blancs → noirs'}[S.side];
+  $('oCoord').textContent='Coordonnées : '+(S.coord?'oui':'non');
+  $('oDur').textContent='Durée : '+(S.dur?S.dur+' s':'libre');
+  $('oSnd').textContent='Son : '+(S.snd?'oui':'non');
+  draw();
+}
+$('go').addEventListener('click',start);
+$('stop').addEventListener('click',()=>{if(S.ph==='run')finish()});
+$('modes').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  S.mode=b.dataset.m;document.querySelectorAll('#modes button').forEach(x=>x.setAttribute('aria-pressed',x===b));idle();
+});
+$('oSide').addEventListener('click',()=>{S.side={w:'b',b:'c',c:'w'}[S.side];if(S.side==='c'&&!S.dur)S.dur=30;save();idle()});
+$('oCoord').addEventListener('click',()=>{S.coord=!S.coord;save();idle()});
+$('oDur').addEventListener('click',()=>{S.dur={30:60,60:0,0:30}[S.dur];if(!S.dur&&S.side==='c')S.dur=30;save();idle()});
+$('oSnd').addEventListener('click',()=>{S.snd=!S.snd;save();idle()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.ph==='run')finish()});
+idle();
+}
+</script>
+</body>
+</html>
