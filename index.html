@@ -84,6 +84,8 @@ main{padding-top:16px}
 .two .bl{background:var(--maple);color:#1d1d1f}.two .bd{background:var(--slate);color:#f6f2ea}
 .go:active,.keys button:active,.two button:active,.opts button:active,.stat button:active{transform:translateY(2px);box-shadow:none}
 .l{color:var(--slate)}.d{color:var(--maple)}
+/* étude : colonne et rangée de la bonne case */
+.sq.st{box-shadow:inset 0 0 0 100px rgba(242,182,50,.28)}
 #kName{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}#kName .keys{grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,auto);grid-auto-flow:column;margin-top:0}
 .wrap{background:var(--slate)}.wrap.veil #board{visibility:hidden!important}#kName .keys button{min-height:50px;font-size:20px}
 
@@ -157,6 +159,8 @@ function draw(){
   board.innerHTML=h;board.style.visibility=S.mode==='color'&&S.ph==='run'?'hidden':'visible';
 }
 const sq=n=>board.querySelector(`[data-s="${n}"]`);
+function study(n){board.querySelectorAll('.sq').forEach(q=>{const t=q.dataset.s;if(t!==n&&(t[0]===n[0]||t[1]===n[1]))q.classList.add('st')})}
+document.querySelector('main').addEventListener('click',e=>{if(!S.wait)return;if(e.target.closest('.opts,#modes,#stop'))return;e.stopPropagation();e.preventDefault();S.wait=false;next()},true);
 function dot(n,cls,txt,ms){
   const q=sq(n);if(!q)return;q.querySelector('.dot')?.remove();
   const d=document.createElement('span');d.className='dot '+cls;d.textContent=txt||'';q.appendChild(d);
@@ -168,7 +172,7 @@ function next(){
   do{target={f:Math.floor(Math.random()*8),r:1+Math.floor(Math.random()*8)}}while(name(target.f,target.r)===last);
   last=name(target.f,target.r);
   board.querySelectorAll('.dot').forEach(e=>e.remove());
-  clearTimeout(S.ft);board.parentNode.classList.remove('veil');
+  clearTimeout(S.ft);board.parentNode.classList.remove('veil');board.querySelectorAll('.st').forEach(q=>q.classList.remove('st'));
   if(S.mode==='name'){dot(last,'hi');$('prompt').innerHTML='<small>Quelle case ?</small>';
     if(S.flash)S.ft=setTimeout(()=>board.parentNode.classList.add('veil'),Math.max(300,900-S.streak*60))}
   else $('prompt').textContent=last;
@@ -184,7 +188,9 @@ function answer(ok,tapped,el){
     if(S.mode==='color')$('prompt').innerHTML=`${last} <small>${shade} !</small>`;
     else{if(tapped&&tapped!==last)dot(tapped,'ko',tapped);dot(last,'ok',last)}}
   $('score').textContent=score();
-  setTimeout(next,ok?420:950);
+  if(!S.dur&&S.mode!=='color'){study(last);
+    if(ok)setTimeout(next,1300);else{S.wait=true;$('prompt').innerHTML=`${last} <small>touche pour continuer</small>`}}
+  else setTimeout(next,ok?420:950);
 }
 board.addEventListener('click',e=>{const b=e.target.closest('.sq');if(b&&S.mode==='find')answer(b.dataset.s===last,b.dataset.s)});
 $('kf').innerHTML=[...F].map(c=>`<button data-f="${c}">${c}</button>`).join('');
@@ -232,7 +238,7 @@ function endLeg(){
   }else finish();
 }
 function finish(){
-  S.ph='done';clearInterval(S.t);clearTimeout(S.ft);board.parentNode.classList.remove('veil');$('stop').hidden=true;sEnd();
+  S.ph='done';S.wait=false;clearInterval(S.t);clearTimeout(S.ft);board.parentNode.classList.remove('veil');$('stop').hidden=true;sEnd();
   const tot=score(),k=key(),rec=S.dur&&tot>(S.best[k]||0);
   if(rec){S.best[k]=tot;save()}
   const parts=S.legs.length>1?`Blancs ${S.ls[0]} · Noirs ${S.ls[1]} · `:'';
@@ -240,12 +246,12 @@ function finish(){
   $('prompt').innerHTML='&nbsp;';draw();
 }
 function idle(){
-  S.ph='idle';clearInterval(S.t);$('stop').hidden=true;S.black=S.side==='b';
+  S.ph='idle';S.wait=false;clearInterval(S.t);$('stop').hidden=true;S.black=S.side==='b';
   const b=S.best[key()];
   overlay('Prêt ?',hints[S.mode]+(S.dur&&b?` · record : ${b}`:''),'Démarrer');
   $('prompt').innerHTML='&nbsp;';$('time').textContent=S.dur?S.dur+',0':'∞';$('score').textContent=0;
   $('kName').hidden=S.mode!=='name';$('kColor').hidden=S.mode!=='color';
-  $('hint').textContent=(S.dur?'Juste +1, faux −1. Les notes montent quand tu enchaînes.':'Mode libre : « Stop » pour finir.')+(S.side==='c'?` Combo : ${S.dur} s blancs, ${REST} s de pause, ${S.dur} s noirs.`:'');
+  $('hint').textContent=(S.dur?'Juste +1, faux −1. Les notes montent quand tu enchaînes.':'Mode libre : la bonne case reste affichée avec sa colonne et sa rangée ; après une erreur, touche pour continuer. « Stop » pour finir.')+(S.side==='c'?` Combo : ${S.dur} s blancs, ${REST} s de pause, ${S.dur} s noirs.`:'');
   $('oSide').textContent={w:'Vu des blancs',b:'Vu des noirs',c:'Combo blancs → noirs'}[S.side];
   $('oCoord').textContent='Coordonnées : '+(S.coord?'oui':'non');
   $('oDur').textContent='Durée : '+(S.dur?S.dur+' s':'libre');
